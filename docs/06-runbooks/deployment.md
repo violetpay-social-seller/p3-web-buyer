@@ -14,7 +14,7 @@
 프로젝트 생성 후 실제 CI/CD에 맞춰 확정한다.
 
 ```sh
-pnpm build
+npm run build
 ```
 
 ## Verification

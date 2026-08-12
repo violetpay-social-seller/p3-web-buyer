@@ -13,7 +13,7 @@
 | UI Runtime | React·React DOM `19.2.7` Stable 기준점 |
 | Language | TypeScript 5.x strict |
 | Router | Next.js App Router |
-| Package Manager | pnpm |
+| Package Manager | npm |
 | Styling | Tailwind CSS 4 + CSS Variables |
 | 서버 상태 | TanStack Query 5 |
 | 폼·검증 | React Hook Form + Zod |

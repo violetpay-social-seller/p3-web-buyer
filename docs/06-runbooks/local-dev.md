@@ -3,24 +3,24 @@
 ## Prerequisites
 
 - Node.js는 문서 기준점 `24.18.0` LTS 계열을 사용한다.
-- Package Manager는 pnpm을 사용한다.
+- Package Manager는 npm을 사용한다.
 - `p3-web-buyer`는 독립 Next.js 앱이다.
-- 로컬 셸에 `node`와 `pnpm`이 없다면 Codex 번들 런타임 경로를 PATH에 추가해서 실행한다.
+- 로컬 셸에 `node`와 `npm`이 없다면 Node.js를 설치한 뒤 실행한다.
 
 ## Commands
 
 ```sh
-pnpm install
-pnpm dev
-pnpm typecheck
-pnpm lint
-pnpm build
+npm install
+npm run dev
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-Codex 번들 런타임을 사용할 때:
+모바일 확인용 dev server는 기본 스크립트가 `0.0.0.0:3100`으로 실행한다.
 
 ```sh
-PATH=/Users/kimminseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/Users/kimminseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:$PATH pnpm dev
+ipconfig getifaddr en0
 ```
 
 ## Checks
@@ -34,4 +34,4 @@ PATH=/Users/kimminseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 
 ## Last Verified
 
-- 2026-08-12: `pnpm install`, `pnpm typecheck`, `pnpm lint`, `pnpm build` 통과
+- 2026-08-12: 초기 검증 통과

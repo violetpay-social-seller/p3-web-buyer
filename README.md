@@ -10,13 +10,13 @@ cd p3-web-buyer
 ## 설치
 
 ```bash
-pnpm install
+npm install
 ```
 
 ## 실행
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 ## 확인
