@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+
+  --color-brand-sky: #8ecae6;
+  --color-brand-sea: #219ebc;
+  --color-brand-space: #023047;
+  --color-brand-amber: #ffb703;
+  --color-brand-orange: #fb8500;
+
+  --color-background: #ffffff;
+  --color-background-muted: #e8f7fc;
+  --color-background-elevated: #ffffff;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #e8f7fc;
+  --color-surface-subtle: #fff7df;
+  --color-surface-pressed: #b9e3f2;
+  --color-surface-overlay: rgb(2 48 71 / 72%);
+
+  --color-text-primary: #023047;
+  --color-text-secondary: #15506a;
+  --color-text-tertiary: #246c86;
+  --color-text-inverse: #ffffff;
+  --color-text-disabled: #6f8ea0;
+
+  --color-border: #8ecae6;
+  --color-border-strong: #219ebc;
+  --color-border-subtle: #b9e3f2;
+  --color-focus: #fb8500;
+
+  --color-action-primary: #023047;
+  --color-action-primary-hover: #219ebc;
+  --color-action-primary-active: #012234;
+  --color-action-primary-foreground: #ffffff;
+  --color-action-secondary: #ffb703;
+  --color-action-secondary-hover: #fb8500;
+  --color-action-secondary-foreground: #023047;
+
+  --color-status-success: #023047;
+  --color-status-success-bg: #8ecae6;
+  --color-status-success-border: #219ebc;
+  --color-status-warning: #023047;
+  --color-status-warning-bg: #ffb703;
+  --color-status-warning-border: #fb8500;
+  --color-status-danger: #ffffff;
+  --color-status-danger-bg: #fb8500;
+  --color-status-danger-border: #023047;
+  --color-status-info: #023047;
+  --color-status-info-bg: #8ecae6;
+  --color-status-info-border: #219ebc;
+
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+
+  --radius-none: 0;
+  --radius-control: 0.375rem;
+  --radius-surface: 0.5rem;
+  --radius-panel: 0.5rem;
+  --radius-round: 999px;
+
+  --shadow-focus: 0 0 0 3px rgb(251 133 0 / 38%);
+  --shadow-surface: 0 2px 0 rgb(2 48 71 / 14%);
+  --shadow-overlay: 0 18px 0 rgb(2 48 71 / 18%);
+
+  --font-body: Arial, Helvetica, sans-serif;
+  --font-heading: Arial, Helvetica, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --letter-spacing-default: 0;
+
+  --layout-page-max: 72rem;
+  --layout-content-max: 56rem;
+  --layout-gutter: var(--space-5);
+  --size-header-height: 4rem;
+  --size-bottom-bar-height: 4.5rem;
+  --size-control-height: 2.75rem;
+  --size-touch-target: 2.75rem;
+
+  --z-header: 20;
+  --z-bottom-bar: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --duration-slow: 260ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --opacity-disabled: 0.48;
+}
+
+@theme inline {
+  --color-app-background: var(--color-background);
+  --color-app-surface: var(--color-surface);
+  --color-app-border: var(--color-border);
+  --color-app-primary: var(--color-action-primary);
+  --color-app-primary-foreground: var(--color-action-primary-foreground);
+  --font-sans: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  letter-spacing: var(--letter-spacing-default);
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  font-family: var(--font-body);
+}
+
+a:not([class]) {
+  color: inherit;
+  text-decoration: none;
+}
+
+a[class] {
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
