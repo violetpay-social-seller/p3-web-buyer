@@ -1,5 +1,5 @@
-import { BuyerBlueprintPage, buyerPages } from "@/features/flow-blueprint/buyer-blueprint-page";
+import { RoleRegistrationPanel } from "@/features/auth/role-registration-panel";
 
 export default function AuthRolePage() {
-  return <BuyerBlueprintPage page={buyerPages.role} />;
+  return <RoleRegistrationPanel />;
 }

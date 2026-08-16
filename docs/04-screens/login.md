@@ -18,7 +18,7 @@
 ## 사용자 액션
 
 - Cognito Authorization Code + PKCE 로그인 시작
-- 역할 선택 후 회원가입
+- 역할 선택 후 `POST /auth/me/registration`으로 회원 row 생성
 - 인증 취소 후 이전 공개 화면 복귀
 
 ## 데이터
@@ -27,7 +27,7 @@ Cognito Provider, Return URL, `CurrentUser`
 
 ## Loading 상태
 
-Callback과 `/auth/me/sync` 처리 중 진행 상태와 재시도를 표시한다.
+Callback, `/auth/me/sync`, `/auth/me/registration` 처리 중 진행 상태와 재시도를 표시한다.
 
 ## Empty 상태
 

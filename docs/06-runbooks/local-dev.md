@@ -17,7 +17,7 @@ npm run lint
 npm run build
 ```
 
-모바일 확인용 dev server는 기본 스크립트가 `0.0.0.0:3100`으로 실행한다.
+모바일 확인용 dev server는 기본 스크립트가 `0.0.0.0:3000`으로 실행한다.
 
 ```sh
 ipconfig getifaddr en0

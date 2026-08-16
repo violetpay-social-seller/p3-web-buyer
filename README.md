@@ -22,8 +22,8 @@ npm run dev
 ## 확인
 
 ```text
-PC: http://localhost:3100
-모바일: http://<내-WiFi-IP>:3100
+PC: http://localhost:3000
+모바일: http://<내-WiFi-IP>:3000
 ```
 
 ## 내 WiFi IP 확인

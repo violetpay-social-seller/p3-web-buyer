@@ -8,7 +8,8 @@
 
 ## 요청
 
-- 인증 API에는 Cognito Access Token을 `Authorization: Bearer <token>`으로 전달한다.
+- 일반 인증 API와 인증이 필요한 리소스 API에는 Cognito Access Token을 `Authorization: Bearer <access_token>`으로 전달한다.
+- `/auth/me/sync`, `/auth/me/registration`은 백엔드가 `email`, `name` claim을 읽으므로 Cognito ID Token을 `Authorization: Bearer <id_token>`으로 전달한다.
 - 요청은 공통 Fetch Client를 통과시켜 `requestId`, JSON 파싱, 에러 변환을 일관되게 처리한다.
 - GET 요청만 네트워크 오류에 제한적으로 자동 재시도한다.
 - Mutation, 결제 승인, 환불, 주문 취소 요청은 자동 재시도하지 않는다.

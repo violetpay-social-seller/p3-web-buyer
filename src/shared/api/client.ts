@@ -1,4 +1,5 @@
 import { env } from "@/shared/config/env";
+import { getStoredAccessToken } from "@/shared/auth/token-store";
 
 type ApiErrorPayload = {
   code: string;
@@ -23,12 +24,21 @@ export class ApiError extends Error {
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const accessToken = getStoredAccessToken();
+  const headers = new Headers(init.headers);
+  const isFormData = typeof FormData !== "undefined" && init.body instanceof FormData;
+
+  if (!isFormData && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (accessToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+
   const response = await fetch(`${env.apiBaseUrl}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init.headers,
-    },
+    headers,
   });
 
   const body = (await response.json().catch(() => undefined)) as ApiResponse<T> | undefined;

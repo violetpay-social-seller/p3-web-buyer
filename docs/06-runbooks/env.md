@@ -24,3 +24,4 @@
 - API 비밀키, Point3 Bearer Token, AWS 관리 권한은 프론트 환경변수에 넣지 않는다.
 - Point3 `targetOrigin`은 `NEXT_PUBLIC_POINT3_ORIGIN`과 정확히 비교한다.
 - 환경별 값은 배포 환경에서 주입하고 소스에 비밀값을 커밋하지 않는다.
+- 로컬 Cognito Hosted UI 테스트 시 Callback URL은 `http://localhost:3000/auth/callback`을 Cognito App Client Allowed callback URLs에 등록한다.
