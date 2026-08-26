@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { clearStoredTokens, getStoredTokens, type StoredAuthTokens } from "@/shared/auth/token-store";
 import { uploadAsset } from "@/features/auth/auth-api";
+import { startHostedUiLogout } from "@/shared/auth/cognito";
 
 export function AuthStatusCard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadResult, setUploadResult] = useState<string>("");
   const [uploadError, setUploadError] = useState<string>("");
+  const [sessionError, setSessionError] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [tokens] = useState<StoredAuthTokens | null>(() => getStoredTokens());
   const accessTokenPreview = tokens?.accessToken ? `${tokens.accessToken.slice(0, 18)}...${tokens.accessToken.slice(-10)}` : "없음";
@@ -32,6 +34,18 @@ export function AuthStatusCard() {
       console.error("[auth-debug] POST /assets failed", error);
     } finally {
       setIsUploading(false);
+    }
+  }
+
+  function handleHostedUiLogout() {
+    setSessionError("");
+
+    try {
+      startHostedUiLogout("/auth");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Cognito logout failed";
+      setSessionError(message);
+      console.error("[auth-debug] Cognito logout failed", error);
     }
   }
 
@@ -66,16 +80,26 @@ export function AuthStatusCard() {
         ) : null}
       </div>
 
-      <button
-        className="mt-5 min-h-[var(--size-control-height)] rounded-[var(--radius-control)] border-2 border-[var(--color-brand-space)] px-4 text-sm font-bold"
-        onClick={() => {
-          clearStoredTokens();
-          window.location.reload();
-        }}
-        type="button"
-      >
-        로컬 토큰 삭제
-      </button>
+      <div className="mt-5 grid gap-2 border-t-2 border-[var(--color-border-subtle)] pt-5">
+        <button
+          className="min-h-[var(--size-control-height)] rounded-[var(--radius-control)] bg-[var(--color-brand-amber)] px-4 text-sm font-bold text-[var(--color-brand-space)]"
+          onClick={handleHostedUiLogout}
+          type="button"
+        >
+          Cognito 세션 로그아웃
+        </button>
+        <button
+          className="min-h-[var(--size-control-height)] rounded-[var(--radius-control)] border-2 border-[var(--color-brand-space)] px-4 text-sm font-bold"
+          onClick={() => {
+            clearStoredTokens();
+            window.location.reload();
+          }}
+          type="button"
+        >
+          로컬 토큰만 삭제
+        </button>
+        {sessionError ? <p className="text-sm font-bold text-[var(--color-brand-orange)]">{sessionError}</p> : null}
+      </div>
     </section>
   );
 }

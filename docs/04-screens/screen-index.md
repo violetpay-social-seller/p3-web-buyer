@@ -6,8 +6,8 @@
 | --- | --- | --- |
 | 홈·탐색 | `/`, `/stores`, `/stores/[slug]`, `/stores/[slug]/products/[productId]` | UF-02-01 ~ UF-02-05 |
 | 인증 | `/auth`, `/auth/role`, `/auth/callback`, `/auth/sync` | UF-01-01, UF-01-03 |
-| 상담 | `/inquiries`, `/inquiries/[inquiryId]` | UF-03-01 ~ UF-03-07 |
-| 주문확인·결제 | 상담 채팅방 내 카드, 결제 Overlay | UF-04-01 ~ UF-04-07 |
+| 상담·주문서 draft | `/inquiries`, `/inquiries/[inquiryId]`, `/stores/[slug]/order-form-drafts/new` | UF-03-01 ~ UF-03-07 |
+| 주문확인·결제 | `/inquiries/[inquiryId]/confirmations/[confirmationId]`, 상담 채팅방 내 카드, 결제 Overlay | UF-04-01 ~ UF-04-07 |
 | 주문 | `/orders`, `/orders/[orderId]` | UF-05-01 ~ UF-05-04 |
 | 결제 내역 | `/payments`, `/payments/[paymentId]` | UF-05-05 |
 | 알림·내 정보 | `/notifications`, `/me`, `/me/settings` | UF-01-04 ~ UF-01-06, UF-03-07 |

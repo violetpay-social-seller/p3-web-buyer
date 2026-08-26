@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { completeRegistration, type AuthSyncResponse } from "@/features/auth/auth-api";
+import type { UserRole } from "@/entities/user/types";
 import { getStoredTokens, type StoredAuthTokens } from "@/shared/auth/token-store";
 
 type RegistrationState =
@@ -13,25 +14,28 @@ type RegistrationState =
 
 export function RoleRegistrationPanel() {
   const [tokens] = useState<StoredAuthTokens | null>(() => getStoredTokens());
+  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [state, setState] = useState<RegistrationState>({
     status: "idle",
-    message: "seller 역할로 회원 등록을 진행할 수 있습니다.",
+    message: "buyer 또는 seller 역할로 회원 등록을 진행할 수 있습니다.",
   });
   const idTokenPreview = tokens?.idToken ? `${tokens.idToken.slice(0, 18)}...${tokens.idToken.slice(-10)}` : "없음";
 
-  async function handleRegisterSeller() {
+  async function handleRegister(role: UserRole) {
+    setSelectedRole(role);
     setState({
       status: "processing",
       message: "POST /auth/me/registration 호출 중입니다.",
     });
 
     try {
-      const result = await completeRegistration("SELLER");
+      const result = await completeRegistration(role);
+      const requestRole = role.toLowerCase();
 
       console.info("[auth-debug] POST /auth/me/registration success", result);
       setState({
         status: "success",
-        message: "seller 역할 등록이 완료되었습니다.",
+        message: `${requestRole} 역할 등록이 완료되었습니다.`,
         result,
       });
     } catch (error) {
@@ -54,19 +58,29 @@ export function RoleRegistrationPanel() {
 
         <div className="grid gap-3 rounded-[var(--radius-control)] bg-[var(--color-surface-muted)] p-4 text-sm font-semibold">
           <InfoLine label="등록 API" value="POST /auth/me/registration" />
-          <InfoLine label="요청 역할" value="seller" />
+          <InfoLine label="요청 역할" value={selectedRole ? selectedRole.toLowerCase() : "선택 전"} />
           <InfoLine label="Authorization" value={tokens?.idToken ? "ID Token으로 Bearer 첨부" : "ID Token 없음"} />
           <InfoLine label="ID Token" value={idTokenPreview} />
         </div>
 
-        <button
-          className="min-h-[var(--size-control-height)] rounded-[var(--radius-control)] bg-[var(--color-brand-space)] px-5 text-sm font-bold text-white disabled:opacity-[var(--opacity-disabled)]"
-          disabled={state.status === "processing" || !tokens?.idToken}
-          onClick={handleRegisterSeller}
-          type="button"
-        >
-          seller로 등록
-        </button>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            className="min-h-[var(--size-control-height)] rounded-[var(--radius-control)] bg-[var(--color-brand-space)] px-5 text-sm font-bold text-white disabled:opacity-[var(--opacity-disabled)]"
+            disabled={state.status === "processing" || !tokens?.idToken}
+            onClick={() => handleRegister("BUYER")}
+            type="button"
+          >
+            buyer로 등록
+          </button>
+          <button
+            className="min-h-[var(--size-control-height)] rounded-[var(--radius-control)] bg-[var(--color-brand-amber)] px-5 text-sm font-bold text-[var(--color-brand-space)] disabled:opacity-[var(--opacity-disabled)]"
+            disabled={state.status === "processing" || !tokens?.idToken}
+            onClick={() => handleRegister("SELLER")}
+            type="button"
+          >
+            seller로 등록
+          </button>
+        </div>
 
         {!tokens?.idToken ? (
           <p className="text-sm font-bold text-[var(--color-brand-orange)]">ID Token이 없습니다. 다시 로그인해주세요.</p>

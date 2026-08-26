@@ -25,3 +25,4 @@
 - Point3 `targetOrigin`은 `NEXT_PUBLIC_POINT3_ORIGIN`과 정확히 비교한다.
 - 환경별 값은 배포 환경에서 주입하고 소스에 비밀값을 커밋하지 않는다.
 - 로컬 Cognito Hosted UI 테스트 시 Callback URL은 `http://localhost:3000/auth/callback`을 Cognito App Client Allowed callback URLs에 등록한다.
+- 로컬 Cognito 로그아웃 테스트 시 Sign-out URL은 `http://localhost:3000/auth`를 Cognito App Client Allowed sign-out URLs에 등록한다.

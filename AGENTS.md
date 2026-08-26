@@ -2,6 +2,12 @@
 
 `p3-web-buyer`는 `p3-api`의 구매자용 프론트엔드입니다.
 
+## Workspace References
+
+- 프론트엔드 작업 경로: `/Users/kimminseo/Desktop/violetpay-social-seller/p3-web-buyer`
+- 기획 및 제품 문서 경로: `/Users/kimminseo/Library/Mobile Documents/iCloud~md~obsidian/Documents/MyKnowledge/socialseller`
+- 백엔드 실제 구현 확인 경로: `/Users/kimminseo/Desktop/violetpay-social-seller/p3-api`
+
 ## Mandatory Reading Order
 
 작업 시작 전에 아래 순서로 문서를 확인합니다.

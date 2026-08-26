@@ -1,5 +1,6 @@
 import type { UserRole, UserStatus } from "@/entities/user/types";
 import { apiFetch } from "@/shared/api/client";
+import { apiEndpoints } from "@/shared/api/endpoints";
 import { getStoredIdToken } from "@/shared/auth/token-store";
 
 export type AuthNextRoute = "ROLE_SELECTION" | "BUYER_HOME" | "SELLER_HOME" | "ADMIN_HOME" | string;
@@ -25,14 +26,14 @@ export type AssetUploadResponse = {
 };
 
 export function syncCurrentUser() {
-  return apiFetch<AuthSyncResponse>("/auth/me/sync", {
+  return apiFetch<AuthSyncResponse>(apiEndpoints.auth.syncMe, {
     method: "POST",
     headers: getIdTokenAuthHeaders(),
   });
 }
 
 export function completeRegistration(role: UserRole) {
-  return apiFetch<AuthSyncResponse>("/auth/me/registration", {
+  return apiFetch<AuthSyncResponse>(apiEndpoints.auth.registerMe, {
     method: "POST",
     headers: getIdTokenAuthHeaders(),
     body: JSON.stringify({ role: role.toLowerCase() }),
@@ -43,7 +44,7 @@ export function uploadAsset(file: File) {
   const formData = new FormData();
   formData.set("file", file);
 
-  return apiFetch<AssetUploadResponse>("/assets", {
+  return apiFetch<AssetUploadResponse>(apiEndpoints.assets.upload, {
     method: "POST",
     body: formData,
   });

@@ -1,5 +1,5 @@
 import { env } from "@/shared/config/env";
-import { storeTokens, type StoredAuthTokens } from "@/shared/auth/token-store";
+import { clearStoredTokens, storeTokens, type StoredAuthTokens } from "@/shared/auth/token-store";
 
 const PKCE_VERIFIER_KEY = "p3.buyer.auth.pkce.verifier";
 const OAUTH_STATE_KEY = "p3.buyer.auth.oauth.state";
@@ -62,6 +62,27 @@ export async function startHostedUiLogin(returnTo = "/") {
   authorizeUrl.searchParams.set("state", state);
 
   window.location.assign(authorizeUrl.toString());
+}
+
+export function startHostedUiLogout(logoutTo = "/auth") {
+  assertBrowser();
+
+  const status = getAuthConfigStatus();
+
+  if (!status.ready) {
+    throw new Error(`Missing auth environment: ${status.missingKeys.join(", ")}`);
+  }
+
+  clearStoredTokens();
+  window.sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+  window.sessionStorage.removeItem(OAUTH_STATE_KEY);
+  window.sessionStorage.removeItem(RETURN_TO_KEY);
+
+  const logoutUrl = new URL(`${normalizeCognitoDomain()}/logout`);
+  logoutUrl.searchParams.set("client_id", env.cognitoClientId);
+  logoutUrl.searchParams.set("logout_uri", resolveAppUrl(logoutTo));
+
+  window.location.assign(logoutUrl.toString());
 }
 
 export async function exchangeAuthorizationCode(searchParams: URLSearchParams): Promise<StoredAuthTokens> {
@@ -150,6 +171,18 @@ function getRedirectUri() {
   }
 
   return "";
+}
+
+function resolveAppUrl(pathOrUrl: string) {
+  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
+    return pathOrUrl;
+  }
+
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}${pathOrUrl}`;
+  }
+
+  return `${env.appBaseUrl}${pathOrUrl}`;
 }
 
 function normalizeCognitoDomain() {

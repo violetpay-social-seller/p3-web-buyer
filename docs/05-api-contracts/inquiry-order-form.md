@@ -2,13 +2,20 @@
 
 ## Endpoints
 
+`p3-api` 실제 컨트롤러 기준이다.
+
 | 작업 | Method·URI | 책임 |
 | --- | --- | --- |
-| 문의 생성 | `POST /inquiries` | 스토어 일반 문의 또는 상품 컨텍스트 문의 생성 |
-| 구매자 문의 목록·상세 | `GET /inquiries` | 구매자 참여 문의 조회 |
-| 이전 메시지 조회 | `GET /inquiries/{id}/messages` | 과거 메시지 페이지 조회 |
-| 양식 조회 | `GET /inquiries/{id}/order-form` | 판매자 주문서 양식 조회 |
-| 양식 제출 | `POST /inquiries/{id}/order-form/submissions` | 구매자 주문서 제출 |
+| 문의 생성 | `POST /stores/{slug}/inquiries/open` | 스토어 기준 구매자 문의 생성 또는 기존 문의 열기 |
+| 구매자 문의 목록 | `GET /inquiries?status=&unreadOnly=` | 구매자 참여 문의 조회 |
+| 구매자 문의 상세 | `GET /inquiries/{inquiryId}` | 상담방 헤더와 현재 상태 조회 |
+| 상담 이벤트 조회 | `GET /inquiries/{inquiryId}/events?cursorCreatedAt=&cursorId=&size=` | 과거 메시지와 시스템 이벤트 페이지 조회 |
+| 스토어 정책 조회 | `GET /inquiries/{inquiryId}/store-policies` | 상담 중 필요한 스토어 정책 조회 |
+| 읽음 처리 | `PATCH /inquiries/{inquiryId}/read` | 구매자 상담 읽음 처리 |
+| 휴지통 이동 | `PATCH /inquiries/{inquiryId}/trash` | 구매자 상담 숨김 처리 |
+| 휴지통 복구 | `PATCH /inquiries/{inquiryId}/restore` | 구매자 상담 복구 |
+| 주문서 draft 생성 | `POST /stores/{slug}/order-form-drafts` | 공개 주문서 입력값 draft 생성 |
+| 주문서 draft 소비 | `POST /order-form-drafts/{draftKey}/consume` | draft를 상담 컨텍스트로 소비 |
 
 ## DTO
 
