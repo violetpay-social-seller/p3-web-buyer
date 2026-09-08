@@ -1,5 +1,5 @@
 import { env } from "@/shared/config/env";
-import { clearStoredTokens, storeTokens, type StoredAuthTokens } from "@/shared/auth/token-store";
+import { clearStoredTokens, getStoredTokens, storeTokens, type StoredAuthTokens } from "@/shared/auth/token-store";
 
 const PKCE_VERIFIER_KEY = "p3.buyer.auth.pkce.verifier";
 const OAUTH_STATE_KEY = "p3.buyer.auth.oauth.state";
@@ -11,6 +11,12 @@ type CognitoTokenResponse = {
   refresh_token?: string;
   token_type: string;
   expires_in: number;
+};
+
+export type CognitoIdentityProvider = "Google" | "Kakao";
+
+type StartHostedUiLoginOptions = {
+  identityProvider?: CognitoIdentityProvider;
 };
 
 export type AuthConfigStatus = {
@@ -35,7 +41,7 @@ export function getAuthConfigStatus(): AuthConfigStatus {
   };
 }
 
-export async function startHostedUiLogin(returnTo = "/") {
+export async function startHostedUiLogin(returnTo = "/", options: StartHostedUiLoginOptions = {}) {
   assertBrowser();
 
   const status = getAuthConfigStatus();
@@ -60,6 +66,9 @@ export async function startHostedUiLogin(returnTo = "/") {
   authorizeUrl.searchParams.set("code_challenge_method", "S256");
   authorizeUrl.searchParams.set("code_challenge", challenge);
   authorizeUrl.searchParams.set("state", state);
+  if (options.identityProvider) {
+    authorizeUrl.searchParams.set("identity_provider", options.identityProvider);
+  }
 
   window.location.assign(authorizeUrl.toString());
 }
@@ -146,6 +155,83 @@ export async function exchangeAuthorizationCode(searchParams: URLSearchParams): 
   window.sessionStorage.removeItem(PKCE_VERIFIER_KEY);
   window.sessionStorage.removeItem(OAUTH_STATE_KEY);
 
+  return tokens;
+}
+
+export async function getValidAccessToken(): Promise<string | null> {
+  const tokens = await getValidTokens();
+  return tokens?.accessToken ?? null;
+}
+
+export async function getValidIdToken(): Promise<string | null> {
+  const tokens = await getValidTokens();
+  return tokens?.idToken ?? null;
+}
+
+async function getValidTokens(): Promise<StoredAuthTokens | null> {
+  const tokens = getStoredTokens();
+
+  if (!tokens) {
+    return null;
+  }
+
+  if (tokens.expiresAt > Date.now() + 30_000) {
+    return tokens;
+  }
+
+  if (!tokens.refreshToken) {
+    clearStoredTokens();
+    return null;
+  }
+
+  try {
+    return await refreshStoredTokens(tokens.refreshToken);
+  } catch {
+    return null;
+  }
+}
+
+async function refreshStoredTokens(refreshToken: string): Promise<StoredAuthTokens> {
+  assertBrowser();
+
+  const status = getAuthConfigStatus();
+
+  if (!status.ready) {
+    clearStoredTokens();
+    throw new Error(`Missing auth environment: ${status.missingKeys.join(", ")}`);
+  }
+
+  const tokenUrl = new URL(`${normalizeCognitoDomain()}/oauth2/token`);
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    client_id: env.cognitoClientId,
+    refresh_token: refreshToken,
+  });
+
+  const response = await fetch(tokenUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body,
+  });
+
+  const tokenBody = (await response.json().catch(() => undefined)) as CognitoTokenResponse | undefined;
+
+  if (!response.ok || !tokenBody?.access_token) {
+    clearStoredTokens();
+    throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+  }
+
+  const tokens: StoredAuthTokens = {
+    accessToken: tokenBody.access_token,
+    idToken: tokenBody.id_token,
+    refreshToken: tokenBody.refresh_token ?? refreshToken,
+    tokenType: tokenBody.token_type,
+    expiresAt: Date.now() + tokenBody.expires_in * 1000,
+  };
+
+  storeTokens(tokens);
   return tokens;
 }
 

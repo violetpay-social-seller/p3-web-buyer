@@ -10,35 +10,43 @@
   --figma-color-surface-inverse: #12161c;
   --figma-color-surface-scrim: rgb(0 0 0 / 40%);
 
-  --figma-color-text-primary: #2a2e33;
-  --figma-color-text-secondary: #717377;
-  --figma-color-text-tertiary: #b8b9bb;
-  --figma-color-text-disabled: #e7e8e8;
+  --figma-color-text-primary: #12161c;
+  --figma-color-text-secondary: #4e5054;
+  --figma-color-text-tertiary: #6c6e72;
+  --figma-color-text-disabled: #898b8e;
+  --figma-color-text-unavailable: #b8b9bb;
   --figma-color-text-inverse: #ffffff;
+  --figma-color-text-link: #12161c;
+  --figma-color-text-error: #d81313;
 
   --figma-color-border-default: #d0d0d2;
   --figma-color-border-focus: #12161c;
-  --figma-color-border-subtle: #f3f3f4;
+  --figma-color-border-strong: #898b8e;
+  --figma-color-border-muted: #b8b9bb;
+  --figma-color-border-subtle: #e7e8e8;
 
-  --figma-color-icon-default: #595c60;
+  --figma-color-icon-default: #4e5054;
   --figma-color-icon-muted: #b8b9bb;
-  --figma-color-icon-disabled: #f3f3f4;
+  --figma-color-icon-disabled: #d0d0d2;
+  --figma-color-icon-inverse: #ffffff;
 
   --figma-color-action-primary: #12161c;
-  --figma-color-action-secondary: #717377;
+  --figma-color-action-primary-hover: #393b3f;
+  --figma-color-action-secondary: #6c6e72;
   --figma-color-action-subtle: #f3f3f4;
   --figma-color-action-disabled: #d0d0d2;
   --figma-color-action-inverse: #ffffff;
   --figma-color-action-destructive: #ef4444;
 
   --figma-color-status-error: #ef4444;
-  --figma-color-status-received: #717377;
+  --figma-color-status-error-bg: #fdecec;
+  --figma-color-status-received: #6c6e72;
   --figma-color-status-received-bg: #f3f3f4;
-  --figma-color-status-consulting: #f59e0b;
+  --figma-color-status-consulting: #976106;
   --figma-color-status-consulting-bg: #fef5e7;
-  --figma-color-status-paid: #22c55e;
+  --figma-color-status-paid: #167d3c;
   --figma-color-status-paid-bg: #e9f9ef;
-  --figma-color-status-pickedup: #257ae1;
+  --figma-color-status-pickedup: #1c6bcc;
   --figma-color-status-pickedup-bg: #e9f2fc;
 
   --figma-space-xs: 4px;
@@ -69,7 +77,7 @@
 
   --figma-container-sm: 600px;
   --figma-container-md: 840px;
-  --figma-container-lg: 1120px;
+  --figma-container-lg: 1200px;
   --figma-safe-area-top: 47px;
   --figma-safe-area-bottom: 34px;
 
@@ -111,9 +119,13 @@
   --color-text-tertiary: var(--figma-color-text-tertiary);
   --color-text-inverse: var(--figma-color-text-inverse);
   --color-text-disabled: var(--figma-color-text-disabled);
+  --color-text-unavailable: var(--figma-color-text-unavailable);
+  --color-text-link: var(--figma-color-text-link);
+  --color-text-error: var(--figma-color-text-error);
 
   --color-border: var(--figma-color-border-default);
-  --color-border-strong: var(--figma-color-border-focus);
+  --color-border-strong: var(--figma-color-border-strong);
+  --color-border-muted: var(--figma-color-border-muted);
   --color-border-subtle: var(--figma-color-border-subtle);
   --color-focus: var(--figma-color-border-focus);
 
@@ -131,7 +143,7 @@
   --color-status-warning-bg: var(--figma-color-status-consulting-bg);
   --color-status-warning-border: var(--figma-color-status-consulting);
   --color-status-danger: var(--figma-color-status-error);
-  --color-status-danger-bg: var(--figma-color-status-error);
+  --color-status-danger-bg: var(--figma-color-status-error-bg);
   --color-status-danger-border: var(--figma-color-status-error);
   --color-status-info: var(--figma-color-status-pickedup);
   --color-status-info-bg: var(--figma-color-status-pickedup-bg);
@@ -235,7 +247,11 @@
 }
 
 html {
+  width: 100%;
+  max-width: 100vw;
   min-width: 320px;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
   background: var(--color-background);
   color: var(--color-text-primary);
   font-family: var(--font-body);
@@ -243,9 +259,14 @@ html {
 }
 
 body {
+  width: 100%;
+  max-width: 100vw;
   margin: 0;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
   background: var(--color-background);
   font-family: var(--font-body);
+  position: relative;
 }
 
 a:not([class]) {
@@ -322,4 +343,98 @@ select {
 .text-number-md {
   font: var(--font-number-md);
   letter-spacing: var(--letter-spacing-compact);
+}
+
+.figma-scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.figma-scrollbar-none::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.figma-order-tab {
+  box-sizing: border-box;
+  height: 44px;
+  border-radius: var(--figma-radius-sm);
+  padding: 12px var(--figma-space-md);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.figma-sidebar-overlay,
+.figma-chat-menu-overlay {
+  display: none;
+  pointer-events: none;
+  visibility: hidden;
+  background: rgb(0 0 0 / 0%);
+  opacity: 0;
+  transition:
+    background-color var(--duration-slow) var(--ease-standard),
+    opacity var(--duration-slow) var(--ease-standard),
+    visibility 0s linear var(--duration-slow);
+}
+
+.figma-sidebar-sheet {
+  transform: translateX(100%);
+  transition: transform var(--duration-slow) var(--ease-standard);
+  will-change: transform;
+}
+
+.figma-chat-menu-sheet {
+  transform: translateY(24px);
+  opacity: 0;
+  transition:
+    transform var(--duration-slow) var(--ease-standard),
+    opacity var(--duration-slow) var(--ease-standard);
+  will-change: transform, opacity;
+}
+
+.peer:checked ~ .figma-sidebar-overlay,
+.peer:checked ~ .figma-chat-menu-overlay {
+  display: flex;
+  pointer-events: auto;
+  visibility: visible;
+  background: var(--figma-color-surface-scrim);
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+.peer:checked ~ .figma-sidebar-overlay .figma-sidebar-sheet {
+  transform: translateX(0);
+}
+
+.peer:checked ~ .figma-chat-menu-overlay .figma-chat-menu-sheet {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .figma-sidebar-overlay,
+  .figma-chat-menu-overlay,
+  .figma-sidebar-sheet,
+  .figma-chat-menu-sheet {
+    transition-duration: 1ms;
+  }
+}
+
+.pb-safe-md {
+  padding-bottom: calc(var(--figma-space-md) + env(safe-area-inset-bottom, 0px));
+}
+
+.pb-safe-lg {
+  padding-bottom: calc(var(--figma-space-lg) + env(safe-area-inset-bottom, 0px));
+}
+
+.pb-safe-xl {
+  padding-bottom: calc(var(--figma-space-xl) + env(safe-area-inset-bottom, 0px));
+}
+
+.pb-safe-sheet {
+  padding-bottom: calc(34px + env(safe-area-inset-bottom, 0px));
 }

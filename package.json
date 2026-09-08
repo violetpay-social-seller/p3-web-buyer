@@ -25,6 +25,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@stomp/stompjs": "^7.2.1",
     "@tanstack/react-query": "^5.90.6",
+    "@tosspayments/tosspayments-sdk": "2.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.545.0",
     "msw": "^2.11.6",

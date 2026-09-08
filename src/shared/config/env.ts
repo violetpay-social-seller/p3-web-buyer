@@ -6,5 +6,6 @@ export const env = {
   cognitoClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID ?? "",
   cognitoRedirectUri: process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI ?? "",
   point3Origin: process.env.NEXT_PUBLIC_POINT3_ORIGIN ?? "",
+  point3SdkUrl: process.env.NEXT_PUBLIC_POINT3_SDK_URL ?? "",
   mswEnabled: process.env.NEXT_PUBLIC_MSW_ENABLED === "true",
 };
