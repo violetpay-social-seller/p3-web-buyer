@@ -1,5 +1,6 @@
-import { BuyerBlueprintPage, buyerPages } from "@/features/flow-blueprint/buyer-blueprint-page";
+import { AuthenticatedBuyerPage } from "@/features/api-backed/authenticated-buyer-page";
+import { buyerPages } from "@/features/flow-blueprint/buyer-blueprint-page";
 
 export default function MeSettingsPage() {
-  return <BuyerBlueprintPage page={buyerPages.settings} />;
+  return <AuthenticatedBuyerPage page={buyerPages.settings} />;
 }

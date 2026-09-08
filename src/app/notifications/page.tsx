@@ -1,5 +1,12 @@
-import { BuyerBlueprintPage, buyerPages } from "@/features/flow-blueprint/buyer-blueprint-page";
+import { AuthenticatedBuyerPage } from "@/features/api-backed/authenticated-buyer-page";
+import { buyerPages } from "@/features/flow-blueprint/buyer-blueprint-page";
 
-export default function NotificationsPage() {
-  return <BuyerBlueprintPage page={buyerPages.notifications} />;
+export default async function NotificationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ state?: string }>;
+}) {
+  const { state } = await searchParams;
+
+  return <AuthenticatedBuyerPage context={state ? `state=${state}` : undefined} page={buyerPages.notifications} />;
 }

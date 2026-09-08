@@ -42,6 +42,10 @@ export function getStoredAccessToken(): string | null {
   return tokens.accessToken;
 }
 
+export function getCurrentAccessToken(): string | null {
+  return getStoredTokens()?.accessToken ?? null;
+}
+
 export function getStoredIdToken(): string | null {
   const tokens = getStoredTokens();
 

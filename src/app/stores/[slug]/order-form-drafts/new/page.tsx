@@ -5,10 +5,10 @@ export default async function NewOrderFormDraftPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ step?: string }>;
+  searchParams: Promise<{ pickupDate?: string; pickupTime?: string; resumeSubmit?: string; startAssetId?: string; startSource?: string; startUploadKey?: string; state?: string; step?: string }>;
 }) {
   const { slug } = await params;
-  const { step } = await searchParams;
+  const { pickupDate, pickupTime, resumeSubmit, startAssetId, startSource, startUploadKey, state, step } = await searchParams;
 
-  return <OrderDraftFlowPage initialStep={step} slug={decodeURIComponent(slug)} />;
+  return <OrderDraftFlowPage initialFormState={state} initialPickupDate={pickupDate} initialPickupTime={pickupTime} initialResumeSubmit={resumeSubmit} initialStartAssetId={startAssetId} initialStartSource={startSource} initialStartUploadKey={startUploadKey} initialStep={step} slug={decodeURIComponent(slug)} />;
 }

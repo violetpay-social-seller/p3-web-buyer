@@ -21,6 +21,7 @@ export const apiEndpoints = {
     galleryItems: (slug: string) => `/stores/${path(slug)}/gallery-items`,
     galleryItem: (slug: string, galleryItemId: Id) => `/stores/${path(slug)}/gallery-items/${path(galleryItemId)}`,
     orderForm: (slug: string) => `/stores/${path(slug)}/order-form`,
+    orderSettings: (slug: string) => `/stores/${path(slug)}/order-settings`,
   },
   orderFormDrafts: {
     create: (slug: string) => `/stores/${path(slug)}/order-form-drafts`,
@@ -32,6 +33,7 @@ export const apiEndpoints = {
     detail: (inquiryId: Id) => `/inquiries/${path(inquiryId)}`,
     events: (inquiryId: Id) => `/inquiries/${path(inquiryId)}/events`,
     storePolicies: (inquiryId: Id) => `/inquiries/${path(inquiryId)}/store-policies`,
+    orderFormSubmission: (inquiryId: Id, submissionId: Id) => `/inquiries/${path(inquiryId)}/order-form-submissions/${path(submissionId)}`,
     markRead: (inquiryId: Id) => `/inquiries/${path(inquiryId)}/read`,
     trash: (inquiryId: Id) => `/inquiries/${path(inquiryId)}/trash`,
     restore: (inquiryId: Id) => `/inquiries/${path(inquiryId)}/restore`,
@@ -47,6 +49,12 @@ export const apiEndpoints = {
   paymentAttempts: {
     capture: (paymentAttemptId: Id) => `/payment-attempts/${path(paymentAttemptId)}/capture`,
   },
+  reports: {
+    create: "/reports",
+  },
+  serviceInquiries: {
+    create: "/service-inquiries",
+  },
   orders: {
     list: "/orders",
     detail: (orderId: Id) => `/orders/${path(orderId)}`,
@@ -57,5 +65,6 @@ export const apiEndpoints = {
     detail: (notificationId: Id) => `/notifications/${path(notificationId)}`,
     unreadCount: "/notifications/unread-count",
     read: (notificationId: Id) => `/notifications/${path(notificationId)}/read`,
+    readAll: "/notifications/read-all",
   },
 } as const;

@@ -1,9 +1,10 @@
 import { env } from "@/shared/config/env";
-import { getStoredAccessToken } from "@/shared/auth/token-store";
+import { getValidAccessToken } from "@/shared/auth/cognito";
 
 type ApiErrorPayload = {
   code: string;
-  message: string;
+  message?: string;
+  title?: string;
   fieldErrors?: { field: string; message: string }[];
 };
 
@@ -24,7 +25,7 @@ export class ApiError extends Error {
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const accessToken = getStoredAccessToken();
+  const accessToken = await getValidAccessToken();
   const headers = new Headers(init.headers);
   const isFormData = typeof FormData !== "undefined" && init.body instanceof FormData;
 
@@ -44,8 +45,9 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   const body = (await response.json().catch(() => undefined)) as ApiResponse<T> | undefined;
 
   if (!response.ok || body?.success === false) {
+    const errorMessage = body?.success === false ? (body.error.message ?? body.error.title) : response.statusText;
     throw new ApiError(
-      body?.success === false ? body.error.message : response.statusText,
+      errorMessage ?? "API request failed",
       response.status,
       body?.success === false ? body.error : undefined,
       body?.requestId,
