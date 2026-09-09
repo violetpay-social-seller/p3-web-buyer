@@ -3,12 +3,25 @@ import { clearPendingUpload } from "@/shared/lib/pending-image-upload-store";
 const ORDER_FORM_RESUME_KEY_PREFIX = "p3.buyer.order-form-resume.";
 const ORDER_FORM_SUBMITTED_DRAFT_CLEANUP_KEY_PREFIX = "p3.buyer.order-form-submitted-draft.";
 
+export type OrderFormResumeMode = "edit" | "new";
+export type OrderFormResumeStep = "pickup-date" | "pickup-time" | "pickup-selected" | "form";
+
+export type OrderFormResumeStartReference = {
+  assetId?: string;
+  source?: string;
+  uploadKey?: string;
+};
+
 export type OrderFormResume<TAnswers> = {
   answers: TAnswers;
-  pickupDate: string;
-  pickupTime: string;
+  mode?: OrderFormResumeMode;
+  noticeAgreed?: boolean;
+  pickupDate?: string;
+  pickupTime?: string;
+  startReference?: OrderFormResumeStartReference;
   startUploadKey?: string;
-  step: "form";
+  submissionId?: string;
+  step: OrderFormResumeStep;
 };
 
 type SubmittedOrderFormDraftCleanup = {
@@ -25,14 +38,19 @@ export function readOrderFormResume<TAnswers>(slug: string): OrderFormResume<TAn
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as Partial<OrderFormResume<TAnswers>>;
-    if (!parsed.answers || !parsed.pickupDate || !parsed.pickupTime || parsed.step !== "form") return null;
+    const step = normalizeResumeStep(parsed.step);
+    if (!parsed.answers || !step) return null;
 
     return {
       answers: parsed.answers,
-      pickupDate: parsed.pickupDate,
-      pickupTime: parsed.pickupTime,
+      mode: parsed.mode === "edit" ? "edit" : "new",
+      noticeAgreed: parsed.noticeAgreed === true,
+      pickupDate: typeof parsed.pickupDate === "string" ? parsed.pickupDate : "",
+      pickupTime: typeof parsed.pickupTime === "string" ? parsed.pickupTime : "",
+      startReference: normalizeStartReference(parsed.startReference, parsed.startUploadKey),
       startUploadKey: parsed.startUploadKey,
-      step: parsed.step,
+      submissionId: typeof parsed.submissionId === "string" ? parsed.submissionId : undefined,
+      step,
     };
   } catch {
     return null;
@@ -88,4 +106,26 @@ function readSubmittedOrderFormDraftCleanup(draftKey: string): SubmittedOrderFor
 
 function uniqueValues(values: Array<string | undefined>) {
   return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
+function normalizeResumeStep(value: unknown): OrderFormResumeStep | null {
+  if (value === "pickup-date" || value === "pickup-time" || value === "pickup-selected" || value === "form") return value;
+  return null;
+}
+
+function normalizeStartReference(
+  value: unknown,
+  legacyStartUploadKey?: string,
+): OrderFormResumeStartReference | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return legacyStartUploadKey ? { source: "USER_UPLOAD", uploadKey: legacyStartUploadKey } : undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  const assetId = typeof record.assetId === "string" ? record.assetId : undefined;
+  const source = typeof record.source === "string" ? record.source : undefined;
+  const uploadKey = typeof record.uploadKey === "string" ? record.uploadKey : legacyStartUploadKey;
+
+  if (!assetId && !uploadKey) return undefined;
+  return { assetId, source, uploadKey };
 }

@@ -90,10 +90,12 @@ export function ChatComposer({
     setValue("");
   }
 
+  const hasMessage = Boolean(value.trim());
+
   return (
     <form
       data-ui="chat-composer"
-      className="flex h-[52px] min-w-0 items-center gap-[var(--figma-space-sm)] overflow-hidden rounded-[var(--figma-radius-full)] border border-[var(--figma-color-border-default)] bg-[var(--figma-color-surface-subtle)] p-[var(--figma-space-sm)] outline-none ring-0 focus-within:outline-none focus-within:ring-0"
+      className="flex h-[52px] max-h-[52px] min-h-[52px] min-w-0 shrink-0 grow-0 items-center gap-[var(--figma-space-sm)] overflow-hidden rounded-[var(--figma-radius-full)] border border-[var(--figma-color-border-default)] bg-[var(--figma-color-surface-subtle)] p-[var(--figma-space-sm)] outline-none ring-0 focus-within:border-[var(--figma-color-border-default)] focus-within:outline-none focus-within:ring-0 focus-within:!outline-none"
       onSubmit={(event) => {
         event.preventDefault();
         sendMessage();
@@ -101,25 +103,26 @@ export function ChatComposer({
     >
       <button
         aria-label="첨부"
-        className="relative size-9 shrink-0 overflow-hidden rounded-full bg-white outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+        className="relative size-9 shrink-0 overflow-hidden rounded-full bg-white outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:!outline-none"
         data-ui="chat-composer-plus"
         type="button"
       >
         <Image alt="" className="absolute left-1/2 top-1/2 max-w-none -translate-x-1/2 -translate-y-1/2" height={48} src={asset("chat-plus.svg")} width={48} />
       </button>
       <input
-        className="w-0 min-w-0 flex-1 bg-transparent text-body-md outline-none ring-0 placeholder:text-[var(--figma-color-text-unavailable)] focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+        className="m-0 h-9 max-h-9 min-h-9 w-0 min-w-0 flex-1 appearance-none border-0 bg-transparent p-0 text-body-md leading-6 outline-none ring-0 placeholder:text-[var(--figma-color-text-unavailable)] focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:!outline-none"
         onChange={(event) => setValue(event.target.value)}
         placeholder={placeholder}
         value={value}
       />
       <button
         aria-label="전송"
-        className={`relative size-9 shrink-0 overflow-hidden rounded-full outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 ${value.trim() ? "bg-[var(--figma-color-action-secondary)]" : "bg-white"}`}
+        className={`relative size-9 shrink-0 overflow-hidden rounded-full bg-[var(--figma-color-action-secondary)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:!outline-none ${hasMessage ? "visible pointer-events-auto" : "invisible pointer-events-none"}`}
         data-ui="chat-composer-action"
+        disabled={!hasMessage}
         type="submit"
       >
-        <Image alt="" className="absolute left-1/2 top-1/2 max-w-none -translate-x-1/2 -translate-y-1/2" height={48} src={asset(value.trim() ? "chat-send.svg" : "chat-hash.svg")} width={48} />
+        <Image alt="" className="absolute left-1/2 top-1/2 max-w-none -translate-x-1/2 -translate-y-1/2" height={48} src={asset("chat-send.svg")} width={48} />
       </button>
     </form>
   );

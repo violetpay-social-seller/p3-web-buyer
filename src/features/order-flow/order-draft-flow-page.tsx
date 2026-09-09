@@ -36,6 +36,9 @@ import {
   readOrderFormResume,
   saveOrderFormResume,
   saveSubmittedOrderFormDraftCleanup,
+  type OrderFormResume,
+  type OrderFormResumeMode,
+  type OrderFormResumeStartReference,
 } from "@/shared/lib/order-form-resume-store";
 import { SafeImage } from "@/shared/ui/safe-image";
 
@@ -45,6 +48,8 @@ type OrderSubmitPhase = "idle" | "uploading" | "drafting" | "consuming" | "redir
 
 type OrderDraftFlowPageProps = {
   initialFormState?: string;
+  initialMode?: string;
+  initialNoticeAgreed?: string;
   initialPickupDate?: string;
   initialPickupTime?: string;
   initialResumeSubmit?: string;
@@ -52,6 +57,7 @@ type OrderDraftFlowPageProps = {
   initialStartSource?: string;
   initialStartUploadKey?: string;
   initialStep?: string;
+  initialSubmissionId?: string;
   slug: string;
 };
 
@@ -85,6 +91,8 @@ const EMPTY_ASSET_IDS: string[] = [];
 
 export function OrderDraftFlowPage({
   initialFormState,
+  initialMode,
+  initialNoticeAgreed,
   initialPickupDate,
   initialPickupTime,
   initialResumeSubmit,
@@ -92,16 +100,31 @@ export function OrderDraftFlowPage({
   initialStartSource,
   initialStartUploadKey,
   initialStep,
+  initialSubmissionId,
   slug,
 }: OrderDraftFlowPageProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const normalizedInitialStep = normalizeStep(initialStep);
   const normalizedFormState = normalizeFormState(initialFormState);
+  const normalizedMode = normalizeOrderResumeMode(initialMode);
+  const preferInitialStep = shouldPreferInitialStep(initialStep, normalizedMode);
   const normalizedStartSource = normalizeStartReferenceSource(initialStartSource);
-  const restoredDraft = readOrderFormResume<OrderFormAnswers>(slug);
+  const currentResumeScope = {
+    mode: normalizedMode,
+    startReference: buildInitialResumeStartReference(initialStartAssetId, normalizedStartSource, initialStartUploadKey),
+    submissionId: normalizedMode === "edit" ? initialSubmissionId : undefined,
+  };
+  const savedDraft = readOrderFormResume<OrderFormAnswers>(slug);
+  const restoredDraft = shouldUseOrderFormResume(savedDraft, currentResumeScope) ? savedDraft : null;
+  const activeStartUploadKey = restoredDraft?.startReference?.uploadKey ?? restoredDraft?.startUploadKey ?? initialStartUploadKey;
+  const activeStartAssetId = restoredDraft?.startReference?.assetId ?? initialStartAssetId;
+  const activeStartSource = normalizeStartReferenceSource(restoredDraft?.startReference?.source ?? initialStartSource);
+  const activeMode = restoredDraft?.mode ?? normalizedMode;
+  const activeSubmissionId = activeMode === "edit" ? restoredDraft?.submissionId ?? initialSubmissionId : undefined;
+  const noticeAlreadyAgreed = restoredDraft?.noticeAgreed === true || initialNoticeAgreed === "1";
   const autoSubmitAttemptedRef = useRef(false);
-  const [step, setStepState] = useState<OrderDraftStep>(restoredDraft?.step ?? normalizedInitialStep);
+  const [step, setStepState] = useState<OrderDraftStep>(() => (preferInitialStep ? normalizedInitialStep : restoredDraft?.step ?? normalizedInitialStep));
   const [selectedDate, setSelectedDate] = useState(() => getDayOfMonth(restoredDraft?.pickupDate ?? normalizeIsoDateParam(initialPickupDate)));
   const [selectedPickupDate, setSelectedPickupDate] = useState(() => restoredDraft?.pickupDate ?? normalizeIsoDateParam(initialPickupDate));
   const [selectedTime, setSelectedTime] = useState(() => restoredDraft?.pickupTime ?? normalizePickupTimeParam(initialPickupTime));
@@ -111,11 +134,11 @@ export function OrderDraftFlowPage({
   const [orderSettings, setOrderSettings] = useState<StoreOrderSettingAvailabilityResponse | null>(null);
   const [orderFormError, setOrderFormError] = useState("");
   const [startReferenceAssets] = useState<StartReferenceAsset[]>(() =>
-    initialStartAssetId
+    activeStartAssetId
       ? [
           {
-            assetId: initialStartAssetId,
-            source: normalizedStartSource,
+            assetId: activeStartAssetId,
+            source: activeStartSource,
           },
         ]
       : [],
@@ -130,7 +153,22 @@ export function OrderDraftFlowPage({
   const requiredGroups = orderFormGroups.filter((group) => group.required);
   const formReady = Boolean(orderForm) && requiredGroups.every((group) => isGroupAnswerComplete(group, answers[group.id] ?? []));
   const pickupSelection = useMemo(() => ({ pickupDate: selectedPickupDate, pickupTime: selectedTime }), [selectedPickupDate, selectedTime]);
-  const noticeHref = buildStoreNoticeHref(storePath, { agreed: true, pickupSelection, startReferenceAssets, startUploadKey: initialStartUploadKey });
+  const resumeStartReference = useMemo(() => buildResumeStartReference(startReferenceAssets[0], activeStartUploadKey), [activeStartUploadKey, startReferenceAssets]);
+  const noticeHref = buildStoreNoticeHref(storePath, { agreed: true, pickupSelection, startReferenceAssets, startUploadKey: activeStartUploadKey });
+
+  useEffect(() => {
+    saveOrderFormResume<OrderFormAnswers>(slug, {
+      answers,
+      mode: activeMode,
+      noticeAgreed: noticeAlreadyAgreed,
+      pickupDate: selectedPickupDate,
+      pickupTime: selectedTime,
+      startReference: resumeStartReference,
+      startUploadKey: activeStartUploadKey,
+      submissionId: activeSubmissionId,
+      step,
+    });
+  }, [activeMode, activeStartUploadKey, activeSubmissionId, answers, noticeAlreadyAgreed, resumeStartReference, selectedPickupDate, selectedTime, slug, step]);
 
   useEffect(() => {
     let cancelled = false;
@@ -172,7 +210,7 @@ export function OrderDraftFlowPage({
 
   function setStep(nextStep: OrderDraftStep, nextPickupSelection = pickupSelection) {
     setStepState(nextStep);
-    window.history.replaceState(null, "", buildOrderDraftHref(orderPath, nextStep, undefined, nextPickupSelection, startReferenceAssets, initialStartUploadKey));
+    window.history.replaceState(null, "", buildOrderDraftHref(orderPath, nextStep, undefined, nextPickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId));
   }
 
   function handleTimeSelect(time: string) {
@@ -206,31 +244,35 @@ export function OrderDraftFlowPage({
 
     saveOrderFormResume(slug, {
       answers,
+      mode: activeMode,
+      noticeAgreed: true,
       pickupDate: selectedPickupDate,
       pickupTime: selectedTime,
-      startUploadKey: initialStartUploadKey,
+      startReference: resumeStartReference,
+      startUploadKey: activeStartUploadKey,
+      submissionId: activeSubmissionId,
       step: "form",
     });
 
     const accessToken = await getValidAccessToken();
 
-    if (!accessToken && hasPendingOrderFormUploads(answers, initialStartUploadKey)) {
+    if (!accessToken && hasPendingOrderFormUploads(answers, activeStartUploadKey)) {
       setSubmitPhase("redirecting");
       const resumeSubmitHref = withResumeSubmitParam(
-        buildOrderDraftHref(orderPath, "form", normalizedFormState, pickupSelection, startReferenceAssets, initialStartUploadKey),
+        buildOrderDraftHref(orderPath, "form", normalizedFormState, pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId),
       );
       router.push(`/auth?next=${encodeURIComponent(resumeSubmitHref)}`);
       return;
     }
 
     setSubmitting(true);
-    setSubmitPhase(hasPendingOrderFormUploads(answers, initialStartUploadKey) ? "uploading" : "drafting");
+    setSubmitPhase(hasPendingOrderFormUploads(answers, activeStartUploadKey) ? "uploading" : "drafting");
     let navigating = false;
 
     try {
       const answersForSubmit = await resolvePendingAnswerUploads(answers);
       const formAnswers = buildFormAnswers(orderForm, answersForSubmit);
-      const startReferenceAsset = await resolveStartReferenceAsset(startReferenceAssets[0], initialStartUploadKey);
+      const startReferenceAsset = await resolveStartReferenceAsset(startReferenceAssets[0], activeStartUploadKey);
       setSubmitPhase("drafting");
       const draft = await createOrderFormDraft(slug, {
         cancellationRefundAgreed: true,
@@ -248,7 +290,7 @@ export function OrderDraftFlowPage({
         saveSubmittedOrderFormDraftCleanup(draft.draftKey, {
           pendingUploadKeys: getPendingUploadKeysFromAnswers(answers),
           slug,
-          startUploadKey: initialStartUploadKey,
+          startUploadKey: activeStartUploadKey,
         });
         navigating = true;
         router.push(`/auth?next=${encodeURIComponent(consumePath)}`);
@@ -258,7 +300,7 @@ export function OrderDraftFlowPage({
       setSubmitPhase("consuming");
       const consumed = await consumeOrderFormDraft(draft.draftKey);
       clearOrderFormResume(slug);
-      if (initialStartUploadKey) await clearPendingUpload(initialStartUploadKey);
+      if (activeStartUploadKey) await clearPendingUpload(activeStartUploadKey);
       await clearPendingAnswerUploads(answers);
       await refreshSubmittedInquiryQueries(queryClient, consumed.inquiryId);
       setSubmitPhase("navigating");
@@ -275,7 +317,7 @@ export function OrderDraftFlowPage({
         setSubmitting(false);
       }
     }
-  }, [answers, initialStartUploadKey, normalizedFormState, orderForm, orderPath, pickupSelection, queryClient, router, selectedPickupDate, selectedTime, slug, startReferenceAssets]);
+  }, [activeMode, activeStartUploadKey, activeSubmissionId, answers, normalizedFormState, noticeAlreadyAgreed, orderForm, orderPath, pickupSelection, queryClient, resumeStartReference, router, selectedPickupDate, selectedTime, slug, startReferenceAssets]);
 
   useEffect(() => {
     if (initialResumeSubmit !== "1" || autoSubmitAttemptedRef.current || submitting || !orderForm || !formReady || !selectedPickupDate || !selectedTime) {
@@ -296,15 +338,15 @@ export function OrderDraftFlowPage({
     <PhoneLayout
       railTitle={step === "form" ? "주문서 작성" : "주문서/픽업 선택"}
       railLinks={[
-        ["날짜 선택", buildOrderDraftHref(orderPath, "pickup-date", undefined, pickupSelection, startReferenceAssets, initialStartUploadKey)],
-        ["시간 선택", buildOrderDraftHref(orderPath, "pickup-time", undefined, pickupSelection, startReferenceAssets, initialStartUploadKey)],
-        ["선택 완료", buildOrderDraftHref(orderPath, "pickup-selected", undefined, pickupSelection, startReferenceAssets, initialStartUploadKey)],
-        ["공지사항", buildStoreNoticeHref(storePath, { pickupSelection, startReferenceAssets, startUploadKey: initialStartUploadKey })],
-        ["주문서 작성 시작", buildOrderDraftHref(orderPath, "form", "start", pickupSelection, startReferenceAssets, initialStartUploadKey)],
-        ["디자인 선택", buildOrderDraftHref(orderPath, "form", "design", pickupSelection, startReferenceAssets, initialStartUploadKey)],
-        ["모양 선택", buildOrderDraftHref(orderPath, "form", "shape", pickupSelection, startReferenceAssets, initialStartUploadKey)],
-        ["작성 완료", buildOrderDraftHref(orderPath, "form", "complete", pickupSelection, startReferenceAssets, initialStartUploadKey)],
-        ["제출 주문서 상세", buildOrderDraftHref(orderPath, "form", "submitted", pickupSelection, startReferenceAssets, initialStartUploadKey)],
+        ["날짜 선택", buildOrderDraftHref(orderPath, "pickup-date", undefined, pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId)],
+        ["시간 선택", buildOrderDraftHref(orderPath, "pickup-time", undefined, pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId)],
+        ["선택 완료", buildOrderDraftHref(orderPath, "pickup-selected", undefined, pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId)],
+        ["공지사항", buildStoreNoticeHref(storePath, { agreed: noticeAlreadyAgreed, pickupSelection, startReferenceAssets, startUploadKey: activeStartUploadKey })],
+        ["주문서 작성 시작", buildOrderDraftHref(orderPath, "form", "start", pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId)],
+        ["디자인 선택", buildOrderDraftHref(orderPath, "form", "design", pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId)],
+        ["모양 선택", buildOrderDraftHref(orderPath, "form", "shape", pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId)],
+        ["작성 완료", buildOrderDraftHref(orderPath, "form", "complete", pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId)],
+        ["제출 주문서 상세", buildOrderDraftHref(orderPath, "form", "submitted", pickupSelection, startReferenceAssets, activeStartUploadKey, noticeAlreadyAgreed, activeMode, activeSubmissionId)],
         ["상담 목록", "/inquiries"],
       ]}
     >
@@ -341,7 +383,13 @@ export function OrderDraftFlowPage({
           onAbort={() => setShowAbort(true)}
           onDateSelect={handleDateSelect}
           onNext={() => {
-            if (step === "pickup-selected" && selectedTime) router.push(buildStoreNoticeHref(storePath, { pickupSelection, startReferenceAssets, startUploadKey: initialStartUploadKey }));
+            if (step !== "pickup-selected" || !selectedTime) return;
+
+            router.push(
+              noticeAlreadyAgreed
+                ? buildOrderDraftHref(orderPath, "form", normalizedFormState, pickupSelection, startReferenceAssets, activeStartUploadKey, true, activeMode, activeSubmissionId)
+                : buildStoreNoticeHref(storePath, { pickupSelection, startReferenceAssets, startUploadKey: activeStartUploadKey }),
+            );
           }}
           onTimeSelect={handleTimeSelect}
           selectedDate={selectedDate}
@@ -362,9 +410,73 @@ function normalizeStep(value?: string): OrderDraftStep {
   return "pickup-date";
 }
 
+function shouldPreferInitialStep(value: string | undefined, mode: OrderFormResumeMode) {
+  if (value === "form") return true;
+  return mode === "edit" && (value === "pickup-date" || value === "pickup-time" || value === "pickup-selected");
+}
+
 function normalizeFormState(value?: string): OrderDraftFormState {
   if (value === "design" || value === "shape" || value === "complete" || value === "submitted") return value;
   return "start";
+}
+
+function normalizeOrderResumeMode(value?: string): OrderFormResumeMode {
+  return value === "edit" ? "edit" : "new";
+}
+
+function buildInitialResumeStartReference(
+  assetId: string | undefined,
+  source: OrderFormReferenceAssetSource,
+  uploadKey: string | undefined,
+): OrderFormResumeStartReference | undefined {
+  if (assetId) return { assetId, source };
+  if (uploadKey) return { source: "USER_UPLOAD", uploadKey };
+  return undefined;
+}
+
+function buildResumeStartReference(
+  asset: StartReferenceAsset | undefined,
+  uploadKey: string | undefined,
+): OrderFormResumeStartReference | undefined {
+  if (asset) return { assetId: asset.assetId, source: asset.source };
+  if (uploadKey) return { source: "USER_UPLOAD", uploadKey };
+  return undefined;
+}
+
+function shouldUseOrderFormResume(
+  resume: OrderFormResume<OrderFormAnswers> | null,
+  current: {
+    mode: OrderFormResumeMode;
+    startReference?: OrderFormResumeStartReference;
+    submissionId?: string;
+  },
+) {
+  if (!resume) return false;
+  if (!current.startReference && !current.submissionId) return true;
+
+  const resumeMode = resume.mode ?? "new";
+  if (resumeMode !== current.mode) return false;
+
+  if (current.mode === "edit") {
+    return Boolean(current.submissionId && resume.submissionId === current.submissionId);
+  }
+
+  return isSameResumeStartReference(resume.startReference, current.startReference);
+}
+
+function isSameResumeStartReference(
+  saved: OrderFormResumeStartReference | undefined,
+  current: OrderFormResumeStartReference | undefined,
+) {
+  if (!current) return true;
+  if (!saved) return false;
+
+  if (current.assetId) {
+    return saved.assetId === current.assetId && normalizeStartReferenceSource(saved.source) === normalizeStartReferenceSource(current.source);
+  }
+
+  if (current.uploadKey) return saved.uploadKey === current.uploadKey;
+  return false;
 }
 
 function normalizeStartReferenceSource(value?: string): OrderFormReferenceAssetSource {
@@ -619,9 +731,15 @@ function buildOrderDraftHref(
   pickupSelection: PickupSelection,
   startReferenceAssets: StartReferenceAsset[],
   startUploadKey?: string,
+  noticeAgreed = false,
+  mode: OrderFormResumeMode = "new",
+  submissionId?: string,
 ) {
   const params = new URLSearchParams({ step });
   if (state) params.set("state", state);
+  if (noticeAgreed) params.set("noticeAgreed", "1");
+  if (mode === "edit") params.set("mode", "edit");
+  if (submissionId) params.set("submissionId", submissionId);
   appendPickupSelectionParams(params, pickupSelection);
   appendStartReferenceParams(params, startReferenceAssets);
   appendStartUploadParam(params, startUploadKey);

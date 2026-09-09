@@ -195,6 +195,7 @@ function SubmissionBody({ state }: { state: SubmissionState }) {
         pickupDate={state.submission.pickupDate}
         pickupTime={state.submission.pickupTime}
         storeSlug={state.inquiry?.storeSlug}
+        submissionId={state.submission.id}
       />
     </div>
   );
@@ -207,6 +208,7 @@ function SubmissionEditAction({
   pickupDate,
   pickupTime,
   storeSlug,
+  submissionId,
 }: {
   answers: AnswerSnapshot[];
   editHref: string;
@@ -214,6 +216,7 @@ function SubmissionEditAction({
   pickupDate: string;
   pickupTime: string;
   storeSlug?: string;
+  submissionId: string;
 }) {
   const router = useRouter();
   const canEdit = Boolean(storeSlug && editHref);
@@ -226,8 +229,11 @@ function SubmissionEditAction({
 
     saveOrderFormResume<OrderFormAnswers>(storeSlug, {
       answers: buildResumeAnswers(answers),
+      mode: "edit",
+      noticeAgreed: true,
       pickupDate,
       pickupTime: formatPickupTimeLabel(pickupTime),
+      submissionId,
       step: "form",
     });
 
@@ -479,10 +485,13 @@ function buildSubmissionEditHref(
   if (!inquiry?.storeSlug) return "";
 
   const params = new URLSearchParams({
+    mode: "edit",
+    noticeAgreed: "1",
     pickupDate: submission.pickupDate,
     pickupTime: formatPickupTimeLabel(submission.pickupTime),
     state: "complete",
     step: "form",
+    submissionId: submission.id,
   });
   const referenceAsset = getOrderFormSubmissionReferenceAssets(submission).sort((left, right) => (left.sortOrder ?? 0) - (right.sortOrder ?? 0))[0];
 

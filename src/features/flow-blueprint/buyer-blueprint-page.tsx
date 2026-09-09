@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ChatLeaveDialogAction, ChatMenuActionButton, MarkInquiryReadOnMount, NotificationActionItem, OrderCancelRequestDialog } from "@/features/api-backed/buyer-actions";
 import { ChatComposer } from "@/features/chat-flow/chat-composer";
+import { ChatKeyboardStage } from "@/features/chat-flow/chat-keyboard-stage";
 import { ChatTimelineViewport } from "@/features/chat-flow/chat-timeline-viewport";
 import { FlowLoginSheet } from "@/features/flow-blueprint/login-sheet";
 import { NoticeAgreementControls } from "@/features/flow-blueprint/notice-agreement-controls";
@@ -118,12 +119,13 @@ export function BuyerBlueprintPage({
   page: BuyerPage;
 }) {
   const mode = getScreenMode(page.key);
+  const useStableChatViewport = mode === "chat";
   const useDocumentScroll = mode === "store" && !context?.includes("notice=1");
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-[var(--figma-color-surface-subtle)] text-[var(--figma-color-text-primary)]">
-      <div className="mx-auto min-h-dvh w-full max-w-[var(--figma-container-lg)] overflow-x-hidden">
-        <div className={`relative w-full bg-[var(--figma-color-surface-background)] ${useDocumentScroll ? "min-h-dvh" : "h-dvh overflow-hidden"}`}>
+    <main className={`${useStableChatViewport ? "overflow-hidden" : "min-h-dvh"} overflow-x-hidden bg-[var(--figma-color-surface-subtle)] text-[var(--figma-color-text-primary)]`}>
+      <div className={`${useStableChatViewport ? "overflow-hidden" : "min-h-dvh"} mx-auto w-full max-w-[var(--figma-container-lg)] overflow-x-hidden`}>
+        <div className={`relative w-full bg-[var(--figma-color-surface-background)] ${useStableChatViewport ? "h-svh overflow-hidden" : useDocumentScroll ? "min-h-dvh" : "h-dvh overflow-hidden"}`}>
           {renderPhoneScreen(mode, page, context, apiData, onInquiryTimelineRefresh)}
         </div>
       </div>
@@ -750,7 +752,7 @@ function getNoticeItems(orderSettings?: StoreOrderSettingAvailabilityResponse) {
 }
 
 function buildOrderFormStartHref(storePath: string, pickupSelection: NoticePickupSelection, startReferenceAssets: NoticeStartReferenceAsset[], startUploadKey?: string) {
-  const params = new URLSearchParams({ state: "start", step: "form" });
+  const params = new URLSearchParams({ noticeAgreed: "1", state: "start", step: "form" });
   appendPickupSelectionParams(params, pickupSelection);
   appendStartReferenceParams(params, startReferenceAssets);
   appendStartUploadParam(params, startUploadKey);
@@ -843,29 +845,28 @@ function ChatScreen({
         <Header backHref={getBuyerBackHref("inquiryDetail")} chatMenuToggleId="chat-menu-toggle" title={detail?.storeName} variant="chat" />
         <ChatMetaBar status={inquiryStatus} store={store} />
       </div>
-      <ChatTimelineViewport scrollKey={`${timelineItems.at(-1)?.eventId ?? "empty"}:${timelineItems.length}`}>
-        <section className="flex flex-col gap-[var(--figma-space-sm)] pb-[var(--figma-space-lg)] pt-[var(--figma-space-md)]">
-          {timelineItems.length ? (
-            timelineItems.map((item) => (
-              <TimelineBubble
-                confirmation={confirmationsById.get(item.referenceId)}
-                inquiryId={detail.inquiryId}
-                item={item}
-                key={item.eventId}
-                latestConfirmation={latestConfirmation}
-                participantUserId={detail.participant.userId}
-                storeName={detail.storeName}
-                storeProfileSrc={storeProfileSrc}
-              />
-            ))
-          ) : (
-            <EmptyState body="아직 표시할 메시지가 없습니다." title="대화가 없습니다" />
-          )}
-        </section>
-      </ChatTimelineViewport>
-      <div className="shrink-0 bg-white px-[var(--figma-space-md)] pb-[34px] pt-[var(--figma-space-md)] shadow-[var(--figma-shadow-modal)]">
-        <ChatComposer inquiryId={inquiryId} onTimelineChanged={onTimelineRefresh} placeholder="메시지를 입력하세요" />
-      </div>
+      <ChatKeyboardStage composer={<ChatComposer inquiryId={inquiryId} onTimelineChanged={onTimelineRefresh} placeholder="메시지를 입력하세요" />}>
+        <ChatTimelineViewport scrollKey={`${timelineItems.at(-1)?.eventId ?? "empty"}:${timelineItems.length}`}>
+          <section className="flex flex-col gap-[var(--figma-space-sm)] pb-[var(--figma-space-lg)] pt-[var(--figma-space-md)]">
+            {timelineItems.length ? (
+              timelineItems.map((item) => (
+                <TimelineBubble
+                  confirmation={confirmationsById.get(item.referenceId)}
+                  inquiryId={detail.inquiryId}
+                  item={item}
+                  key={item.eventId}
+                  latestConfirmation={latestConfirmation}
+                  participantUserId={detail.participant.userId}
+                  storeName={detail.storeName}
+                  storeProfileSrc={storeProfileSrc}
+                />
+              ))
+            ) : (
+              <EmptyState body="아직 표시할 메시지가 없습니다." title="대화가 없습니다" />
+            )}
+          </section>
+        </ChatTimelineViewport>
+      </ChatKeyboardStage>
       <ChatMenuOverlay inquiryId={inquiryId} storeId={detail?.storeId} storeSlug={detail?.storeSlug} toggleId="chat-menu-toggle" />
       {state === "leave" ? <ChatLeaveDialogAction cancelHref={inquiryId ? `/inquiries/${encodeURIComponent(inquiryId)}?state=menu` : "/inquiries"} inquiryId={inquiryId} /> : null}
     </div>
