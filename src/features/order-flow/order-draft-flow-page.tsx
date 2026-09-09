@@ -1282,6 +1282,7 @@ function OrderFormScreen({
                       <ChoiceRow
                         checked={checked}
                         control={group.selectionType === "MULTI" ? "checkbox" : "radio"}
+                        helperText={getOptionHelperText(option.settings)}
                         key={option.id}
                         label={option.label}
                         name={group.id}
@@ -1328,6 +1329,20 @@ function formatOptionPrice(price: number | null, priceLabel?: string | null) {
   return `+ ${new Intl.NumberFormat("ko-KR").format(price)}원`;
 }
 
+function getOptionHelperText(settings: string | null) {
+  if (!settings) return "";
+
+  try {
+    const parsed: unknown = JSON.parse(settings);
+    if (!parsed || typeof parsed !== "object") return "";
+
+    const helperText = (parsed as { helperText?: unknown }).helperText;
+    return typeof helperText === "string" ? helperText.trim() : "";
+  } catch {
+    return "";
+  }
+}
+
 function getSubmitPhaseLabel(phase: OrderSubmitPhase) {
   if (phase === "uploading") return "이미지 업로드 중";
   if (phase === "drafting") return "주문서 접수 중";
@@ -1340,6 +1355,7 @@ function getSubmitPhaseLabel(phase: OrderSubmitPhase) {
 function ChoiceRow({
   checked,
   control,
+  helperText,
   label,
   name,
   onSelect,
@@ -1347,6 +1363,7 @@ function ChoiceRow({
 }: {
   checked: boolean;
   control: "checkbox" | "radio";
+  helperText?: string;
   label: string;
   name: string;
   onSelect: () => void;
@@ -1357,7 +1374,14 @@ function ChoiceRow({
       <span className="flex min-w-0 items-center gap-[var(--figma-space-sm)]">
         <input checked={checked} className="sr-only" name={name} onChange={onSelect} type={control} />
         <SelectionControl checked={checked} control={control} />
-        <span className="min-w-0 text-body-md">{label}</span>
+        <span className="flex min-w-0 flex-col">
+          <span className="min-w-0 text-body-md">{label}</span>
+          {helperText ? (
+            <span className="mt-1 text-label-xs text-[var(--figma-color-text-tertiary)]">
+              * {helperText}
+            </span>
+          ) : null}
+        </span>
       </span>
       {price ? <span className="shrink-0 text-number-md">{price}</span> : null}
     </label>
