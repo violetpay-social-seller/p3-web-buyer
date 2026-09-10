@@ -1,3 +1,4 @@
+import { BuyerLoginRouteGuard } from "@/features/auth/buyer-login-route-guard";
 import { BuyerBlueprintPage, buyerPages } from "@/features/flow-blueprint/buyer-blueprint-page";
 
 export default async function AuthPage({
@@ -7,5 +8,9 @@ export default async function AuthPage({
 }) {
   const { next } = await searchParams;
 
-  return <BuyerBlueprintPage context={next ? `next=${encodeURIComponent(next)}` : undefined} page={buyerPages.auth} />;
+  return (
+    <BuyerLoginRouteGuard>
+      <BuyerBlueprintPage context={next ? `next=${encodeURIComponent(next)}` : undefined} page={buyerPages.auth} />
+    </BuyerLoginRouteGuard>
+  );
 }
