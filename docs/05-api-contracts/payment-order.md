@@ -16,7 +16,7 @@
 | 결제 승인 요청 | `POST /payment-attempts/{paymentAttemptId}/capture` | 서버가 Point3 승인 처리 |
 | 구매자 주문 | `GET /orders` | 주문 목록 |
 | 구매자 주문 상세 | `GET /orders/{orderId}` | 주문 스냅샷, 상태, 결제·환불, 상담 참조 |
-| 주문 취소 요청 | `POST /orders/{orderId}/cancel-request` | 구매자 취소 요청 |
+| 주문 환불 요청 | `POST /orders/{orderId}/refund-request` | 구매자 환불 요청 |
 
 ## DTO
 
@@ -31,11 +31,16 @@ type PaymentStatus =
 
 type OrderStatus =
   | "PAID"
-  | "IN_PRODUCTION"
-  | "PRODUCTION_COMPLETED"
-  | "PICKUP_COMPLETED"
-  | "CANCELLED"
+  | "PICKED_UP"
+  | "REFUND_REQUESTED"
   | "REFUNDED";
+
+type RefundOutcome =
+  | "COMPLETED"
+  | "PROCESSING"
+  | "RETRYABLE"
+  | "MANUAL_REQUIRED"
+  | "FAILED";
 
 type PaymentPreparation = {
   paymentAttemptId: string;
@@ -55,6 +60,10 @@ type OrderSummary = {
   status: OrderStatus;
 };
 ```
+
+- 주문 응답의 환불 요청 정보는 `refundRequestedAt`, `refundReason`으로 받는다.
+- 주문 상세의 `refunds`는 최신순이며, 화면은 `order.status`와 `refunds[0].outcome`을 함께 확인한다.
+- `PROCESSING`, `RETRYABLE`, `MANUAL_REQUIRED`를 구매자에게 환불 완료나 확정 실패로 표시하지 않는다.
 
 ## Point3 Rules
 

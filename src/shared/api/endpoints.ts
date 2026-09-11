@@ -58,7 +58,7 @@ export const apiEndpoints = {
   orders: {
     list: "/orders",
     detail: (orderId: Id) => `/orders/${path(orderId)}`,
-    cancelRequest: (orderId: Id) => `/orders/${path(orderId)}/cancel-request`,
+    refundRequest: (orderId: Id) => `/orders/${path(orderId)}/refund-request`,
   },
   notifications: {
     list: "/notifications",

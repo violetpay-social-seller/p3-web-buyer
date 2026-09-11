@@ -229,6 +229,40 @@ export type ChatTimelinePageResponse = {
   nextCursorId: string | null;
 };
 
+export type OrderStatus =
+  | "PAID"
+  | "PICKED_UP"
+  | "REFUND_REQUESTED"
+  | "REFUNDED";
+
+export type RefundStatus = "REQUESTED" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+export type RefundOutcome =
+  | "COMPLETED"
+  | "PROCESSING"
+  | "RETRYABLE"
+  | "MANUAL_REQUIRED"
+  | "FAILED";
+
+export type RefundResponse = {
+  refundId: string;
+  orderId: string;
+  paymentAttemptId: string;
+  requestedBy: string;
+  amount: number;
+  refundRate: number;
+  reason: string | null;
+  status: RefundStatus;
+  outcome: RefundOutcome;
+  retryable: boolean;
+  providerRefundId: string | null;
+  failureCode: string | null;
+  failureMessage: string | null;
+  failureDetails: string | null;
+  createdAt: string;
+  completedAt: string | null;
+};
+
 export type OrderListItemResponse = {
   id: string;
   storeId: string;
@@ -241,9 +275,9 @@ export type OrderListItemResponse = {
   startReferenceAssets: string[];
   paidAmount: number;
   pickupAt: string;
-  status: string;
-  cancelRequestedAt: string | null;
-  cancelReason: string | null;
+  status: OrderStatus;
+  refundRequestedAt: string | null;
+  refundReason: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -264,7 +298,7 @@ export type OrderDetailResponse = {
     expiresAt: string;
     expired: boolean;
   } | null;
-  refunds: unknown[];
+  refunds: RefundResponse[];
 };
 
 export type NotificationResponse = {
@@ -655,8 +689,8 @@ export function getOrder(orderId: string) {
   return apiFetch<OrderDetailResponse>(apiEndpoints.orders.detail(orderId));
 }
 
-export function requestOrderCancel(orderId: string, reason: string) {
-  return apiFetch<OrderResponse>(apiEndpoints.orders.cancelRequest(orderId), {
+export function requestOrderRefund(orderId: string, reason: string) {
+  return apiFetch<OrderResponse>(apiEndpoints.orders.refundRequest(orderId), {
     method: "POST",
     body: JSON.stringify({ reason }),
   });

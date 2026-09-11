@@ -50,7 +50,7 @@
 | 확인서 상태 | `PATCH /inquiries/{inquiryId}/confirmations/{confirmationId}/viewed`, `/revision` | 구매자 |
 | 결제 CTA/시도 | `GET /inquiries/{inquiryId}/confirmations/{confirmationId}/payment-cta`, `GET/POST /inquiries/{inquiryId}/confirmations/{confirmationId}/payment-attempts` | 확인서 기준 |
 | 결제 승인 | `POST /payment-attempts/{paymentAttemptId}/capture` | Point3 capture |
-| 주문 | `GET /orders`, `GET /orders/{orderId}`, `POST /orders/{orderId}/cancel-request` | 구매자 |
+| 주문 | `GET /orders`, `GET /orders/{orderId}`, `POST /orders/{orderId}/refund-request` | 구매자 |
 | 알림 | `GET /notifications`, `GET /notifications/{notificationId}`, `GET /notifications/unread-count`, `PATCH /notifications/{notificationId}/read` | 인증 사용자 |
 
 ## Backend Gaps
