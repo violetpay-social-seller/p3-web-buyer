@@ -21,7 +21,7 @@ type StoreStatus = "PUBLIC" | "PRIVATE" | "SUSPENDED";
 type ProductStatus = "PUBLIC" | "HIDDEN";
 type InquiryStatus = "OPEN" | "CLOSED";
 type PaymentStatus = "READY" | "PROCESSING" | "SUCCEEDED" | "FAILED" | "RESULT_UNKNOWN" | "CLOSED";
-type OrderStatus = "PAID" | "IN_PRODUCTION" | "PRODUCTION_COMPLETED" | "PICKUP_COMPLETED" | "CANCELLED" | "REFUNDED";
+type OrderStatus = "PAID" | "PICKED_UP" | "REFUND_REQUESTED" | "REFUNDED";
 ```
 
 알 수 없는 Enum은 화면을 중단하지 않고 `확인 필요`로 표시하며 개발 환경에서 로그를 남긴다.

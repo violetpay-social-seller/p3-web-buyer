@@ -11,6 +11,7 @@ import { PendingUploadPreviewImage } from "@/features/flow-blueprint/pending-upl
 import { SidebarLoginAction } from "@/features/flow-blueprint/sidebar-login-action";
 import { getGalleryImageUrl, StoreOrderSection } from "@/features/flow-blueprint/store-order-section";
 import { OrderFormSubmissionCard } from "@/features/order-flow/order-form-submission-card";
+import { getBuyerRefundUiState } from "@/features/order-flow/buyer-refund-state";
 import { formatOrderSummaryPreview } from "@/shared/lib/order-summary-format";
 import { getBuyerBackHref, getSafeBuyerReturnTo } from "@/shared/navigation/buyer-back-routes";
 import { FlowCard, FlowCardAction } from "@/shared/ui/flow-card";
@@ -24,6 +25,7 @@ import type {
   OrderConfirmationResponse,
   OrderDetailResponse,
   OrderListItemResponse,
+  OrderStatus,
   PublicStoreResponse,
   StoreOrderSettingAvailabilityResponse,
   UserProfileResponse,
@@ -1414,6 +1416,7 @@ function OrderDetailScreen({ detail, state }: { detail?: OrderDetailResponse; st
   const order = detail?.order;
   const orderHref = order ? `/orders/${encodeURIComponent(order.id)}` : "/orders";
   const inquiryHref = order ? `/inquiries/${encodeURIComponent(order.inquiryId)}?state=paid` : "/inquiries";
+  const refundState = detail ? getBuyerRefundUiState(detail) : null;
 
   if (!order) {
     return (
@@ -1431,20 +1434,23 @@ function OrderDetailScreen({ detail, state }: { detail?: OrderDetailResponse; st
   return (
     <div className="relative flex h-full flex-col bg-[var(--figma-color-surface-subtle)]">
       <AppTitleHeader backHref={getBuyerBackHref("orderDetail")} title="주문 내역" />
-      <div className="flex-1 overflow-y-auto p-[var(--figma-space-md)]">
+      <div className="flex flex-1 flex-col gap-[var(--figma-space-md)] overflow-y-auto p-[var(--figma-space-md)]">
         <OrderDetailCard detail={detail} />
+        {refundState?.message ? <BuyerRefundStatusNotice message={refundState.message} /> : null}
       </div>
       <div className="shrink-0 px-[var(--figma-space-md)] pb-safe-lg pt-[var(--figma-space-md)]">
         <div className="flex gap-[var(--figma-space-sm)]">
-          <Link className="flex h-11 flex-1 items-center justify-center rounded-[var(--figma-radius-md)] border border-[var(--figma-color-border-strong)] bg-white text-label-md text-[var(--figma-color-text-secondary)]" href={`${orderHref}?state=cancel`}>
-            취소 요청
-          </Link>
+          {refundState?.canRequestRefund ? (
+            <Link className="flex h-11 flex-1 items-center justify-center rounded-[var(--figma-radius-md)] border border-[var(--figma-color-border-strong)] bg-white text-label-md text-[var(--figma-color-text-secondary)]" href={`${orderHref}?state=cancel`}>
+              환불 요청
+            </Link>
+          ) : null}
           <Link className="flex h-11 flex-1 items-center justify-center rounded-[var(--figma-radius-md)] bg-[var(--figma-color-action-primary)] text-label-md text-white" href={inquiryHref}>
             채팅방 가기
           </Link>
         </div>
       </div>
-      {state === "cancel" ? (
+      {state === "cancel" && refundState?.canRequestRefund ? (
         <OrderCancelRequestDialog
           cancelHref={orderHref}
           failureHref={`${orderHref}?state=cancel-failed`}
@@ -1453,6 +1459,14 @@ function OrderDetailScreen({ detail, state }: { detail?: OrderDetailResponse; st
         />
       ) : null}
     </div>
+  );
+}
+
+function BuyerRefundStatusNotice({ message }: { message: string }) {
+  return (
+    <section className="rounded-[var(--figma-radius-sm)] border border-[var(--figma-color-border-default)] bg-white px-[var(--figma-space-md)] py-[var(--figma-space-sm)] text-body-sm text-[var(--figma-color-text-secondary)]">
+      {message}
+    </section>
   );
 }
 
@@ -1576,34 +1590,26 @@ function formatKoreanDateTime(value: string) {
   }).format(date);
 }
 
-function formatOrderStatus(status: string) {
-  const labels: Record<string, string> = {
-    CANCEL_REQUESTED: "취소요청",
-    CANCELED: "취소완료",
+function formatOrderStatus(status: OrderStatus) {
+  const labels: Record<OrderStatus, string> = {
     PAID: "결제완료",
-    PAYMENT_COMPLETED: "결제완료",
     PICKED_UP: "픽업완료",
-    PICKUP_COMPLETED: "픽업완료",
-    REFUND_PROCESSING: "환불처리중",
+    REFUND_REQUESTED: "환불요청",
     REFUNDED: "환불완료",
   };
 
-  return labels[status] ?? status;
+  return labels[status];
 }
 
-function getOrderStatusTone(status: string): StatusTone {
-  const tones: Record<string, StatusTone> = {
-    CANCEL_REQUESTED: "consulting",
-    CANCELED: "danger",
+function getOrderStatusTone(status: OrderStatus): StatusTone {
+  const tones: Record<OrderStatus, StatusTone> = {
     PAID: "paid",
-    PAYMENT_COMPLETED: "paid",
     PICKED_UP: "picked",
-    PICKUP_COMPLETED: "picked",
-    REFUND_PROCESSING: "consulting",
+    REFUND_REQUESTED: "consulting",
     REFUNDED: "received",
   };
 
-  return tones[status] ?? "received";
+  return tones[status];
 }
 
 function formatInquiryStatus(status: string) {
@@ -1696,7 +1702,7 @@ function CancelResultScreen({ failed, inquiryHref }: { failed: boolean; inquiryH
     <div className="flex h-full flex-col bg-white">
       <AppTitleHeader backHref={getBuyerBackHref("orderDetail")} title="주문 내역" />
       <div className="flex flex-1 flex-col items-center justify-center px-[var(--figma-space-md)] text-center">
-        <h1 className="text-display-sm">{failed ? "취소 요청에 실패했어요" : "취소 요청이 접수되었습니다."}</h1>
+        <h1 className="text-display-sm">{failed ? "환불 요청에 실패했어요" : "환불 요청이 접수되었습니다."}</h1>
         <p className="mt-[var(--figma-space-sm)] text-body-md text-[var(--figma-color-text-secondary)]">
           {failed ? "매장 내 환불정책 확인결과 환불 요청이 어려운 상태에요" : "스토어 사장님이 매장 환불정책 확인 후 환불 요청을 도와드려요"}
         </p>

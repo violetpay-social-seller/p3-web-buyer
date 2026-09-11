@@ -7,7 +7,7 @@ import {
   createServiceInquiry,
   markInquiryRead,
   readNotification,
-  requestOrderCancel,
+  requestOrderRefund,
   trashInquiry,
   type NotificationResponse,
 } from "@/shared/api/buyer-api";
@@ -93,7 +93,7 @@ export function OrderCancelRequestDialog({
 
     setPending(true);
     try {
-      await requestOrderCancel(orderId, "구매자 취소 요청");
+      await requestOrderRefund(orderId, "구매자 환불 요청");
       router.replace(successHref);
     } catch {
       router.replace(failureHref);
